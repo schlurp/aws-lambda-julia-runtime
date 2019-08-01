@@ -1,5 +1,5 @@
-ARG JL_VERSION_BASE=0.6
-ARG JL_VERSION_PATCH=4
+ARG JL_VERSION_BASE=1.1
+ARG JL_VERSION_PATCH=1
 ARG JL_VERSION=$JL_VERSION_BASE.$JL_VERSION_PATCH
 
 FROM octech/lambdajl:$JL_VERSION
@@ -15,7 +15,7 @@ ENV HAVE_INFOZIP=1
 
 # Install required Julia packages.
 COPY REQUIRE /var/task/julia/v$JL_VERSION_BASE/
-RUN julia -e 'Pkg.update(); Pkg.resolve()'
+RUN julia -e 'using Pkg; Pkg.update(); Pkg.resolve()'
 
 # Get latest AWSLambdaJuliaRuntime.jl module
 COPY bundle/AWSLambdaJuliaRuntime.jl \
@@ -81,7 +81,7 @@ RUN find julia -name '.git' \
 COPY bootstrap /var/task/bootstrap
 
 # Start fresh with build container to bundle up the runtime
-FROM lambci/lambda:build-python2.7
+FROM lambci/lambda:build-python3.7
 
 COPY --from=0 /var/task/ /var/task-build/
 
@@ -107,4 +107,5 @@ RUN cp /var/task-build/bin/julia                bin/                        && \
 
 # FIXME Remove "|| true" When MbedTLS stripping fix is released.
 # https://github.com/JuliaWeb/MbedTLS.jl/issues/140
-RUN for f in $(find . -name '*.so'); do strip $f || true; done
+# RUN for f in $(find . -name '*.so'); do strip $f || true; done
+RUN for f in $(find . -name '*.so'); do strip $f; done
